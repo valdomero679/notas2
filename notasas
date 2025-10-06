@@ -1,0 +1,223 @@
+src/App.tsx
+
+import { useState, useEffect } from 'react';
+import { Plus, Trash2 } from 'lucide-react';
+
+interface Note {
+  id: string;
+  content: string;
+  createdAt: string;
+}
+
+function App() {
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [newNote, setNewNote] = useState('');
+
+  useEffect(() => {
+    const savedNotes = localStorage.getItem('notes');
+    if (savedNotes) {
+      setNotes(JSON.parse(savedNotes));
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('notes', JSON.stringify(notes));
+  }, [notes]);
+
+  const addNote = () => {
+    if (newNote.trim()) {
+      const note: Note = {
+        id: Date.now().toString(),
+        content: newNote,
+        createdAt: new Date().toISOString(),
+      };
+      setNotes([note, ...notes]);
+      setNewNote('');
+    }
+  };
+
+  const deleteNote = (id: string) => {
+    setNotes(notes.filter(note => note.id !== id));
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-600 via-purple-500 to-blue-500 p-4 md:p-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-6 md:p-8 mb-6">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-6 text-center">
+            My Notes
+          </h1>
+
+          <div className="space-y-4">
+            <textarea
+              value={newNote}
+              onChange={(e) => setNewNote(e.target.value)}
+              placeholder="Write your note here..."
+              className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:outline-none resize-none h-32 text-gray-800 placeholder-gray-400 transition-colors"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && e.ctrlKey) {
+                  addNote();
+                }
+              }}
+            />
+
+            <button
+              onClick={addNote}
+              className="w-full md:w-auto px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-blue-700 transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
+            >
+              <Plus size={20} />
+              Add Note
+            </button>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          {notes.length === 0 ? (
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-12 text-center">
+              <p className="text-gray-400 text-lg">No notes yet. Create your first note above!</p>
+            </div>
+          ) : (
+            notes.map((note) => (
+              <div
+                key={note.id}
+                className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-200 group"
+              >
+                <div className="flex justify-between items-start gap-4">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-gray-800 whitespace-pre-wrap break-words mb-3">
+                      {note.content}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {formatDate(note.createdAt)}
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() => deleteNote(note.id)}
+                    className="flex-shrink-0 p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100"
+                    aria-label="Delete note"
+                  >
+                    <Trash2 size={20} />
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default App;
+📄 src/main.tsx
+
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import App from './App.tsx';
+import './index.css';
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>
+);
+📄 src/index.css
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+📄 index.html
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Notes App</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+📄 package.json
+
+{
+  "name": "notes-app",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "lucide-react": "^0.344.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.5",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "autoprefixer": "^10.4.18",
+    "eslint": "^9.9.1",
+    "postcss": "^8.4.35",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.5.3",
+    "vite": "^5.4.2"
+  }
+}
+📄 vite.config.ts
+
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+  plugins: [react()],
+  optimizeDeps: {
+    exclude: ['lucide-react'],
+  },
+});
+📄 tailwind.config.js
+
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+};
+📄 postcss.config.js
+
+export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+};
+📄 tsconfig.json
+
+{
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ]
+}
